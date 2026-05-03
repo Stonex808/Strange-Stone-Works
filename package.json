@@ -10,11 +10,11 @@
     "check": "astro check"
   },
   "dependencies": {
-    "@astrojs/mdx": "^4.0.0",
+    "@astrojs/mdx": "^5.0.4",
     "@astrojs/react": "^4.0.0",
     "@react-three/drei": "^10.0.0",
     "@react-three/fiber": "^9.0.0",
-    "astro": "^5.8.0",
+    "astro": "^6.2.1",
     "framer-motion": "^12.0.0",
     "gsap": "^3.13.0",
     "react": "^19.0.0",
