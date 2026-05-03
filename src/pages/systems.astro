@@ -1,0 +1,9 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import ProjectCard from '@/components/ProjectCard';
+const projects = [{name:'Agent Stone',status:'Forging',stack:'Python, FastAPI',milestone:'Memory layer v2'},{name:'The Stick',status:'Released',stack:'TypeScript, Astro',milestone:'Plugin ecosystem'},{name:'Living LLM',status:'Dormant',stack:'Rust, ONNX',milestone:'Emotion engine'}] as const;
+---
+<Layout title="Systems">
+  <h1 class="font-heading text-5xl mb-4">Hardforge Systems</h1>
+  <div class="grid md:grid-cols-3 gap-4">{projects.map((p)=><ProjectCard p={p} />)}</div>
+</Layout>

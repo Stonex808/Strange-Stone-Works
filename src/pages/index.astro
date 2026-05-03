@@ -1,0 +1,22 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import ForgeCard from '@/components/ForgeCard';
+const cards = [
+['Hardforge Systems','Software projects & AI tools','/systems'],
+['Sedimentary Artworks','Visual experiments','/art'],
+['Music','Sonic records','/music'],
+['Tablets','Theory and notes','/tablets'],
+['Store','Digital artifacts','/store'],
+['Annex','Restricted 18+','/annex']
+];
+---
+<Layout title="Forge Dashboard">
+  <section class="my-8 text-center">
+    <h1 class="font-heading text-6xl">Strange Stone Works</h1>
+    <p class="font-ui tracking-widest">Ancient stone forge meets modern AI dashboard.</p>
+    <div class="mx-auto my-8 w-44 h-44 rounded-full border border-glow shadow-ember animate-pulseSlow"></div>
+  </section>
+  <section class="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
+    {cards.map(([title, subtitle, href]) => <ForgeCard title={title} subtitle={subtitle} href={href} />)}
+  </section>
+</Layout>

@@ -1,0 +1,10 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import TabletCard from '@/components/TabletCard';
+import { getCollection } from 'astro:content';
+const tablets = await getCollection('tablets');
+---
+<Layout title="Tablets">
+  <h1 class="font-heading text-5xl mb-4">Abstract Stone Tablets</h1>
+  <div class="grid lg:grid-cols-4 gap-4"><aside class="forge-panel p-3">Categories<br/>AI & Epistemology<br/>Creativity<br/>Systems Thinking</aside><div class="lg:col-span-3 space-y-3">{tablets.map((t)=><TabletCard title={t.data.title} excerpt={t.data.excerpt} href={`/tablets/${t.id.replace('.mdx','')}`} />)}</div></div>
+</Layout>
