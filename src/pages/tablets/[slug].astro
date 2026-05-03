@@ -1,0 +1,18 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import { getCollection, render } from 'astro:content';
+
+export async function getStaticPaths() {
+  const tabs = await getCollection('tablets');
+  return tabs.map((t) => ({ params: { slug: t.id.replace('.mdx', '') }, props: { tab: t } }));
+}
+
+const { tab } = Astro.props;
+const { Content } = await render(tab);
+---
+<Layout title={tab.data.title}>
+  <article class="prose prose-invert max-w-3xl mx-auto">
+    <h1>{tab.data.title}</h1>
+    <Content />
+  </article>
+</Layout>

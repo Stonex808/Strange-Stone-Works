@@ -1,0 +1,15 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+body {
+  @apply bg-bg text-text font-body min-h-screen;
+  background-image: radial-gradient(circle at 20% 20%, rgba(255,138,24,.08), transparent 40%), radial-gradient(circle at 80% 5%, rgba(220,162,74,.09), transparent 35%);
+}
+
+.forge-panel { @apply bg-panel/90 border border-border rounded-xl; }
+.glow-border { box-shadow: 0 0 0 1px rgba(255,138,24,.25), 0 0 20px rgba(255,138,24,.2); }

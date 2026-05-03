@@ -1,0 +1,9 @@
+---
+import Layout from '@/layouts/Layout.astro';
+import ArtifactCard from '@/components/ArtifactCard';
+const items = [{name:'Dark Prompt Forge Pack',price:'$14.99',desc:'Prompt bundles + system rituals.'},{name:'AI Workflow Templates',price:'$24.99',desc:'Ops templates for creator systems.'},{name:'Writer\'s Black Book',price:'$13.99',desc:'Theory prompts and structures.'}];
+---
+<Layout title="Store">
+  <h1 class="font-heading text-5xl mb-4">Fuel the Forge</h1>
+  <div class="grid lg:grid-cols-4 gap-4"><aside class="forge-panel p-4">Filters<br/>Prompt Packs<br/>Art Packs<br/>Subscriptions</aside><div class="lg:col-span-3 grid md:grid-cols-2 gap-4">{items.map((i)=><ArtifactCard item={i} />)}</div></div>
+</Layout>

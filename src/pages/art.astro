@@ -1,0 +1,9 @@
+---import Layout from '@/layouts/Layout.astro';
+const heights = [160, 220, 280, 200, 260, 180, 300, 240, 190];
+---
+<Layout title="Art">
+  <h1 class="font-heading text-5xl mb-4">Sedimentary Artworks</h1>
+  <div class="columns-2 md:columns-3 gap-4 space-y-4">
+    {heights.map((h)=><div class="forge-panel p-2 break-inside-avoid"><div style={`height:${h}px`} class="bg-gradient-to-br from-zinc-800 to-amber-900/40 rounded" /></div>)}
+  </div>
+</Layout>
