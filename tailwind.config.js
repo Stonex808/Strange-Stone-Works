@@ -1,3 +1,4 @@
+import typography from '@tailwindcss/typography';
 /** @type {import('tailwindcss').Config} */
 export default {
   content: ['./src/**/*.{astro,html,js,jsx,md,mdx,ts,tsx}'],
@@ -13,10 +14,10 @@ export default {
         text: '#C8BCA7'
       },
       fontFamily: {
-        heading: ['Cinzel', 'serif'],
-        ui: ['Rajdhani', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
-        mono: ['"JetBrains Mono"', 'monospace']
+        heading: ['Georgia', 'Times New Roman', 'serif'],
+        ui: ['Trebuchet MS', 'Arial', 'sans-serif'],
+        body: ['Inter', 'ui-sans-serif', 'system-ui', 'sans-serif'],
+        mono: ['SFMono-Regular', 'Consolas', 'Liberation Mono', 'monospace']
       },
       boxShadow: {
         ember: '0 0 40px rgba(255,138,24,.35)'
@@ -26,5 +27,5 @@ export default {
       }
     }
   },
-  plugins: [require('@tailwindcss/typography')]
+  plugins: [typography]
 };
