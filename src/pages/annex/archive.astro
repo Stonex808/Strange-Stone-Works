@@ -1,0 +1,32 @@
+---
+export const prerender = false;
+import Layout from '@/layouts/Layout.astro';
+---
+
+<Layout title="Annex Archive | Strange Stone Works">
+  <section class="my-8">
+    <p class="font-ui text-sm uppercase tracking-[0.4em] text-warning">Protected content</p>
+    <h1 class="mt-3 font-heading text-5xl sm:text-6xl">Annex Archive</h1>
+    <p class="mt-4 max-w-3xl text-lg text-text/80">
+      Restricted archives unlocked. Mature theoretical material, satire, and speculative notes belong here after the
+      annex consent gate is accepted.
+    </p>
+  </section>
+
+  <section class="grid gap-4 md:grid-cols-2">
+    <article class="forge-panel p-6">
+      <h2 class="font-heading text-3xl text-highlight">Access Notice</h2>
+      <p class="mt-3 text-text/80">
+        This route is guarded by Astro middleware that checks the annex consent cookie before protected archive content is
+        rendered.
+      </p>
+    </article>
+    <article class="forge-panel p-6">
+      <h2 class="font-heading text-3xl text-highlight">Expiration Policy</h2>
+      <p class="mt-3 text-text/80">
+        Consent expires after 30 days or whenever the consent version changes, causing visitors to return to the warning
+        shell for a fresh acknowledgement.
+      </p>
+    </article>
+  </section>
+</Layout>

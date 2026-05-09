@@ -1,2 +1,17 @@
----import Layout from '@/layouts/Layout.astro'; import ModalGate from '@/components/ModalGate';---
-<Layout title="Annex"><h1 class="font-heading text-5xl">Solid AntiMatter Annex</h1><ModalGate client:load /></Layout>
+---
+import Layout from '@/layouts/Layout.astro';
+import ModalGate from '@/components/ModalGate';
+---
+
+<Layout title="Annex Warning | Strange Stone Works">
+  <section class="my-8 text-center">
+    <p class="font-ui text-sm uppercase tracking-[0.4em] text-warning">Public warning shell</p>
+    <h1 class="mt-3 font-heading text-5xl sm:text-6xl">Solid AntiMatter Annex</h1>
+    <p class="mx-auto mt-4 max-w-3xl text-lg text-text/80">
+      The annex archive is intentionally separated from the public site. Read the warning, confirm adult access, and
+      continue only if this material is legal in your jurisdiction.
+    </p>
+  </section>
+
+  <ModalGate client:load />
+</Layout>
