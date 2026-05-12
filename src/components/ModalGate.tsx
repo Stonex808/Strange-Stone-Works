@@ -1,9 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ComponentProps } from 'react';
 import GlowButton from './GlowButton';
 import {
-  ANNEX_CONSENT_COOKIE_NAME,
   ANNEX_CONSENT_MAX_AGE_DAYS,
-  ANNEX_CONSENT_MAX_AGE_MS,
   ANNEX_CONSENT_STORAGE_KEY,
   ANNEX_CONSENT_VERSION,
   createAnnexConsentRecord,
@@ -11,111 +9,98 @@ import {
   serializeAnnexConsent,
 } from '@/lib/annexGate';
 
-type GateStatus = 'checking' | 'ready' | 'accepted' | 'blocked';
+type GateStatus = 'checking' | 'ready' | 'accepted' | 'blocked' | 'submitting';
 
-function getCookieValue(name: string): string | null {
-  const cookie = document.cookie
-    .split('; ')
-    .find((entry) => entry.startsWith(`${name}=`));
+type ModalGateProps = {
+  hasServerConsent?: boolean;
+  gateReason?: string;
+};
 
-  return cookie ? cookie.slice(name.length + 1) : null;
+type FormSubmitHandler = NonNullable<ComponentProps<'form'>['onSubmit']>;
+
+const protectedArchivePath = '/annex/archive';
+
+function readStoredConsent(): string | null {
+  try {
+    return window.localStorage.getItem(ANNEX_CONSENT_STORAGE_KEY);
+  } catch {
+    return null;
+  }
 }
 
-function persistConsent(): { ok: boolean; message: string } {
-  const record = createAnnexConsentRecord();
-  const serialized = serializeAnnexConsent(record);
-  let storageSaved = false;
-  let cookieSaved = false;
-
+function writeStoredConsent(): boolean {
   try {
-    window.localStorage.setItem(ANNEX_CONSENT_STORAGE_KEY, serialized);
-    storageSaved = true;
+    window.localStorage.setItem(ANNEX_CONSENT_STORAGE_KEY, serializeAnnexConsent(createAnnexConsentRecord()));
+    return true;
   } catch {
-    storageSaved = false;
+    return false;
   }
-
-  try {
-    document.cookie = `${ANNEX_CONSENT_COOKIE_NAME}=${serialized}; max-age=${ANNEX_CONSENT_MAX_AGE_MS / 1000}; path=/annex; SameSite=Lax`;
-    cookieSaved = isAnnexConsentValid(getCookieValue(ANNEX_CONSENT_COOKIE_NAME));
-  } catch {
-    cookieSaved = false;
-  }
-
-  if (cookieSaved) {
-    return {
-      ok: true,
-      message: storageSaved
-        ? 'Consent recorded locally. Opening the protected archive…'
-        : 'LocalStorage is blocked, so consent was recorded with a same-site cookie only.',
-    };
-  }
-
-  return {
-    ok: false,
-    message:
-      'Consent could not be saved. Enable same-site cookies for this site to access the protected archive. No content was unlocked.',
-  };
 }
 
-function clearConsent() {
+function clearStoredConsent() {
   try {
     window.localStorage.removeItem(ANNEX_CONSENT_STORAGE_KEY);
   } catch {
-    // Storage may be blocked; the cookie clear below is the safe fallback.
+    // Storage may be blocked. The server-side exit action still clears the cookie.
   }
-
-  document.cookie = `${ANNEX_CONSENT_COOKIE_NAME}=; max-age=0; path=/annex; SameSite=Lax`;
 }
 
-export default function ModalGate() {
+function getSafeNextPath(): string {
+  const next = new URLSearchParams(window.location.search).get('next');
+  return next === protectedArchivePath || next?.startsWith(`${protectedArchivePath}/`) ? next : protectedArchivePath;
+}
+
+export default function ModalGate({ hasServerConsent = false, gateReason }: ModalGateProps) {
   const [status, setStatus] = useState<GateStatus>('checking');
   const [message, setMessage] = useState('Review the warning and choose Enter or Exit.');
+  const [nextPath, setNextPath] = useState(protectedArchivePath);
 
   const versionLabel = useMemo(() => ANNEX_CONSENT_VERSION.replaceAll('-', ' '), []);
+  const canSubmit = status !== 'checking' && status !== 'submitting';
 
   useEffect(() => {
-    const cookieConsent = getCookieValue(ANNEX_CONSENT_COOKIE_NAME);
-    let localConsent: string | null = null;
+    setNextPath(getSafeNextPath());
 
-    try {
-      localConsent = window.localStorage.getItem(ANNEX_CONSENT_STORAGE_KEY);
-    } catch {
-      localConsent = null;
-    }
-
-    if (isAnnexConsentValid(cookieConsent) || isAnnexConsentValid(localConsent)) {
+    if (hasServerConsent || isAnnexConsentValid(readStoredConsent())) {
       setStatus('accepted');
       setMessage('A current consent record was found. You may continue to the archive or exit and clear consent.');
       return;
     }
 
-    const gateReason = new URLSearchParams(window.location.search).get('gate');
     if (gateReason === 'required') {
-      setMessage('Consent is required before the protected archive can be rendered. Please review and choose Enter or Exit.');
-    }
-
-    setStatus('ready');
-  }, []);
-
-  function handleEnter() {
-    const result = persistConsent();
-    setMessage(result.message);
-
-    if (!result.ok) {
       setStatus('blocked');
+      setMessage('Consent is required before the protected archive can be rendered. Please review and choose Enter or Exit.');
       return;
     }
 
-    setStatus('accepted');
-    window.setTimeout(() => {
-      window.location.assign('/annex/archive');
-    }, 350);
-  }
+    if (gateReason === 'expired') {
+      setStatus('blocked');
+      setMessage('Your previous annex consent expired or used an older version. Please review the notice again.');
+      return;
+    }
 
-  function handleExit() {
-    clearConsent();
-    window.location.assign('/');
-  }
+    setStatus('ready');
+  }, [gateReason, hasServerConsent]);
+
+  const handleSubmit: FormSubmitHandler = (event) => {
+    const submitter = (event.nativeEvent as SubmitEvent).submitter as HTMLButtonElement | null;
+    const intent = submitter?.value;
+
+    if (intent === 'exit') {
+      clearStoredConsent();
+      setStatus('submitting');
+      setMessage('Exiting annex and clearing local consent…');
+      return;
+    }
+
+    const storageSaved = writeStoredConsent();
+    setStatus('submitting');
+    setMessage(
+      storageSaved
+        ? 'Consent saved locally. Creating the protected session…'
+        : 'LocalStorage is blocked, so the server will use a same-site cookie fallback.',
+    );
+  };
 
   return (
     <section className="forge-panel glow-border mx-auto mt-8 max-w-3xl p-6 text-left sm:p-8" aria-labelledby="annex-gate-title">
@@ -150,34 +135,36 @@ export default function ModalGate() {
         </div>
         <div>
           <dt className="font-ui uppercase tracking-widest text-highlight/80">Fallback</dt>
-          <dd>Cookie is required if localStorage is blocked</dd>
+          <dd>HttpOnly cookie if localStorage is blocked</dd>
         </div>
       </dl>
 
-      <p className="mt-5 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm text-warning" role="status">
+      <p className="mt-5 rounded-md border border-warning/40 bg-warning/10 p-3 text-sm text-warning" role="status" aria-live="polite">
         {status === 'checking' ? 'Checking consent status…' : message}
       </p>
 
-      <div className="mt-6 flex flex-col gap-3 sm:flex-row">
-        <GlowButton className="bg-glow/20" onClick={handleEnter} disabled={status === 'checking'}>
+      <form className="mt-6 flex flex-col gap-3 sm:flex-row" method="get" action="/annex/consent" onSubmit={handleSubmit}>
+        <input type="hidden" name="next" value={nextPath} />
+        <GlowButton className="bg-glow/20" type="submit" name="intent" value="enter" disabled={!canSubmit}>
           Enter Archive
         </GlowButton>
         {status === 'accepted' ? (
           <a
             className="rounded-md border border-glow bg-panel px-4 py-2 text-center font-ui uppercase tracking-wider text-highlight shadow-ember transition duration-300 hover:bg-glow/10"
-            href="/annex/archive"
+            href={nextPath}
           >
             Continue to Archive
           </a>
         ) : null}
-        <GlowButton className="bg-warning/20" onClick={handleExit} disabled={status === 'checking'}>
+        <GlowButton className="bg-warning/20" type="submit" name="intent" value="exit" disabled={!canSubmit}>
           Exit
         </GlowButton>
-      </div>
+      </form>
 
       {status === 'blocked' ? (
         <p className="mt-4 text-sm text-text/70">
-          Safe fallback activated: protected content stays unavailable until consent can be stored in a same-site cookie.
+          Safe fallback active: protected content stays unavailable until current consent can be stored in a same-site
+          cookie by the server.
         </p>
       ) : null}
     </section>

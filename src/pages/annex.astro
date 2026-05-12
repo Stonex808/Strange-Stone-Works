@@ -1,6 +1,13 @@
 ---
+export const prerender = false;
+
 import Layout from '@/layouts/Layout.astro';
 import ModalGate from '@/components/ModalGate';
+import { ANNEX_CONSENT_COOKIE_NAME, isAnnexConsentValid } from '@/lib/annexGate';
+
+const gateReasonParam = Astro.url.searchParams.get('gate');
+const gateReason = gateReasonParam === 'required' || gateReasonParam === 'expired' ? gateReasonParam : undefined;
+const hasServerConsent = isAnnexConsentValid(Astro.cookies.get(ANNEX_CONSENT_COOKIE_NAME)?.value);
 ---
 
 <Layout title="Annex Warning | Strange Stone Works">
@@ -13,5 +20,5 @@ import ModalGate from '@/components/ModalGate';
     </p>
   </section>
 
-  <ModalGate client:load />
+  <ModalGate client:load hasServerConsent={hasServerConsent} gateReason={gateReason} />
 </Layout>
