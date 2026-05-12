@@ -1,0 +1,12 @@
+---
+export const prerender = true;
+import Layout from '@/layouts/Layout.astro';
+---
+<Layout title="Demo Checkout">
+  <section class="forge-panel mx-auto max-w-2xl p-6 text-center">
+    <p class="font-ui text-sm uppercase tracking-[0.3em] text-highlight">Hosted checkout simulation</p>
+    <h1 class="mt-3 font-heading text-5xl">Checkout redirect ready</h1>
+    <p class="mt-4 text-text/70">Connect Shopify Storefront credentials to redirect customers to a real Shopify-hosted checkout. Local demo mode verifies cart lines against the server catalog first, then lands here.</p>
+    <a class="mt-6 inline-block rounded-md border border-glow bg-glow/10 px-4 py-3 font-ui uppercase tracking-wider text-highlight shadow-ember" href="/store">Return to store</a>
+  </section>
+</Layout>

@@ -1,0 +1,74 @@
+---
+export const prerender = true;
+import Layout from '@/layouts/Layout.astro';
+import CartPanel from '@/components/CartPanel';
+import ProductPurchase from '@/components/ProductPurchase';
+import { formatMoney, getProducts, type CommerceProduct } from '@/lib/commerce';
+
+export async function getStaticPaths() {
+  const products = await getProducts();
+  return products.map((product) => ({ params: { handle: product.handle }, props: { product } }));
+}
+
+const { product } = Astro.props as { product: CommerceProduct };
+const firstVariant = product.variants[0];
+---
+<Layout title={`${product.title} | Store`}>
+  <a class="font-ui text-sm uppercase tracking-widest text-highlight hover:underline" href="/store">← Back to store</a>
+
+  <div class="mt-6 grid gap-6 lg:grid-cols-[1fr_380px]">
+    <article class="space-y-5">
+      <div class="forge-panel flex min-h-72 items-center justify-center overflow-hidden p-6 text-center font-heading text-5xl text-highlight/80">
+        {product.featuredImage ? <img class="max-h-[420px] w-full rounded-xl object-cover" src={product.featuredImage.url} alt={product.featuredImage.altText || product.title} /> : product.title}
+      </div>
+
+      <section class="forge-panel p-5">
+        <p class="font-ui text-sm uppercase tracking-[0.3em] text-highlight">{product.vendor} · {product.productType}</p>
+        <h1 class="mt-2 font-heading text-5xl">{product.title}</h1>
+        <p class="mt-4 text-lg text-text/75">{product.description}</p>
+        <p class="mt-4 font-heading text-2xl text-highlight">{firstVariant ? `From ${formatMoney(firstVariant.price)}` : 'Unavailable'}</p>
+      </section>
+
+      <section class="grid gap-4 md:grid-cols-3">
+        <div class="forge-panel p-4">
+          <h2 class="font-heading text-xl">Provider</h2>
+          <p class="mt-2 text-sm text-text/70">{product.provider.name}</p>
+          <p class="mt-1 text-xs text-text/50">SKU prefix: {product.provider.skuPrefix}</p>
+        </div>
+        <div class="forge-panel p-4">
+          <h2 class="font-heading text-xl">Shipping</h2>
+          <p class="mt-2 text-sm text-text/70">{product.shippingProfile.origin}</p>
+          <p class="mt-1 text-xs text-text/50">Estimate: {product.shippingProfile.estimate}</p>
+        </div>
+        <div class="forge-panel p-4">
+          <h2 class="font-heading text-xl">Returns</h2>
+          <p class="mt-2 text-sm text-text/70">{product.shippingProfile.returnWindow}</p>
+        </div>
+      </section>
+
+      <section class="forge-panel p-5">
+        <h2 class="font-heading text-2xl">Variants & mapped SKUs</h2>
+        <div class="mt-3 overflow-x-auto">
+          <table class="w-full min-w-[520px] text-left text-sm">
+            <thead class="font-ui uppercase text-text/50"><tr><th class="py-2">Variant</th><th>SKU</th><th>Stock</th><th>Price</th></tr></thead>
+            <tbody>
+              {product.variants.map((variant) => (
+                <tr class="border-t border-border">
+                  <td class="py-2">{variant.title}</td>
+                  <td>{variant.sku}</td>
+                  <td>{variant.availableForSale ? `${variant.quantityAvailable ?? 'Limited'} available` : 'Out of stock'}</td>
+                  <td>{formatMoney(variant.price)}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </section>
+    </article>
+
+    <div class="space-y-4">
+      <ProductPurchase product={product} client:load />
+      <CartPanel client:load />
+    </div>
+  </div>
+</Layout>

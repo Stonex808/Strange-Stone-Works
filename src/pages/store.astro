@@ -1,9 +1,55 @@
 ---
+export const prerender = true;
 import Layout from '@/layouts/Layout.astro';
-import ArtifactCard from '@/components/ArtifactCard';
-const items = [{name:'Dark Prompt Forge Pack',price:'$14.99',desc:'Prompt bundles + system rituals.'},{name:'AI Workflow Templates',price:'$24.99',desc:'Ops templates for creator systems.'},{name:'Writer\'s Black Book',price:'$13.99',desc:'Theory prompts and structures.'}];
+import CartPanel from '@/components/CartPanel';
+import StoreRefresh from '@/components/StoreRefresh';
+import { formatMoney, getProducts } from '@/lib/commerce';
+
+const products = await getProducts();
+const categories = [...new Set(products.flatMap((product) => product.tags.length ? product.tags : [product.productType]))];
 ---
 <Layout title="Store">
-  <h1 class="font-heading text-5xl mb-4">Fuel the Forge</h1>
-  <div class="grid lg:grid-cols-4 gap-4"><aside class="forge-panel p-4">Filters<br/>Prompt Packs<br/>Art Packs<br/>Subscriptions</aside><div class="lg:col-span-3 grid md:grid-cols-2 gap-4">{items.map((i)=><ArtifactCard item={i} />)}</div></div>
+  <section class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+    <div>
+      <p class="font-ui text-sm uppercase tracking-[0.3em] text-highlight">Shopify Storefront API</p>
+      <h1 class="font-heading text-5xl">Fuel the Forge</h1>
+      <p class="mt-3 max-w-2xl text-text/70">Live catalog data is fetched at build time from Shopify when credentials are configured, with a safe demo catalog for local development.</p>
+    </div>
+    <StoreRefresh client:load />
+  </section>
+
+  <div class="grid gap-4 lg:grid-cols-4">
+    <aside class="forge-panel p-4">
+      <h2 class="font-heading text-2xl">Filters</h2>
+      <div class="mt-4 flex flex-wrap gap-2 lg:block lg:space-y-2">
+        {categories.map((category) => <span class="inline-block rounded-full border border-border px-3 py-1 text-sm text-text/75">{category}</span>)}
+      </div>
+      <div class="mt-6 rounded-lg border border-border bg-bg/50 p-3 text-sm text-text/70">
+        <strong class="text-highlight">Fulfillment:</strong> Shopify checkout, provider SKU mapping, tax zones, returns policy, and webhook-ready order status are wired into the commerce layer.
+      </div>
+    </aside>
+
+    <div class="grid gap-4 md:grid-cols-2 lg:col-span-2">
+      {products.map((product) => {
+        const firstVariant = product.variants[0];
+        return (
+          <article class="forge-panel flex flex-col overflow-hidden p-4">
+            <div class="mb-4 flex h-40 items-center justify-center rounded-lg border border-border bg-bg/60 text-center font-heading text-3xl text-highlight/80">
+              {product.featuredImage ? <img class="h-full w-full rounded-lg object-cover" src={product.featuredImage.url} alt={product.featuredImage.altText || product.title} /> : product.title.split(' ').slice(0, 2).join(' ')}
+            </div>
+            <p class="font-ui text-xs uppercase tracking-widest text-highlight">{product.vendor} · {product.productType}</p>
+            <h3 class="mt-2 font-heading text-2xl">{product.title}</h3>
+            <p class="mt-2 flex-1 text-sm text-text/70">{product.description}</p>
+            <dl class="mt-4 grid grid-cols-2 gap-2 text-sm">
+              <div class="rounded-md border border-border bg-bg/50 p-2"><dt class="text-text/50">From</dt><dd>{firstVariant ? formatMoney(firstVariant.price) : 'Unavailable'}</dd></div>
+              <div class="rounded-md border border-border bg-bg/50 p-2"><dt class="text-text/50">Stock</dt><dd>{firstVariant?.availableForSale ? 'Available' : 'Out'}</dd></div>
+            </dl>
+            <a class="mt-4 rounded-md border border-glow bg-panel px-4 py-2 text-center font-ui uppercase tracking-wider text-highlight shadow-ember transition hover:bg-glow/10" href={`/store/${product.handle}`}>View details</a>
+          </article>
+        );
+      })}
+    </div>
+
+    <CartPanel client:load />
+  </div>
 </Layout>
